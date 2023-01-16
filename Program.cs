@@ -1,17 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
 
 namespace ParseVerbs
 {
+    public class Verb
+    {
+        public String Spanish { get; set; }
+        public String English { get; set; }
+        public String Russian { get; set; }
+    }
+
     internal class Program
     {
         static void Main(string[] args)
         {
             List<char> Chars = new List<char>();
+            List<Verb> Verbs = new List<Verb>();  
 
             var BaseUrl = "https://lingolex.com/verbs/az_verbs.php?letra=A";
             var BaseLetterUrl = "https://lingolex.com/verbs/az_verbs.php?letra=";
@@ -68,12 +78,15 @@ namespace ParseVerbs
                         for (int i = 3; i < verbs.Count-2; i++)
                         {
                             Console.WriteLine(String.Format("{0} -> {1}", verbs[i].SelectNodes("div")[0].InnerText, verbs[i].SelectNodes("div")[1].InnerText));
+                            Verbs.Add(new Verb() { Spanish = verbs[i].SelectNodes("div")[0].InnerText.Trim(), English = verbs[i].SelectNodes("div")[1].InnerText.Trim(), Russian = String.Empty });
                         }
                         Console.WriteLine();
                     }
-                    Console.ReadKey();
+                    //Console.ReadKey();
                 }
             }
+            var jsonString = JsonSerializer.Serialize(Verbs, new JsonSerializerOptions() {  DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull, WriteIndented = true });
+            File.WriteAllText("SpanishVerbs.json", jsonString);
         }
     }
 }
