@@ -23,10 +23,11 @@ namespace ParseVerbs
             List<char> Chars = new List<char>();
             List<Verb> Verbs = new List<Verb>();  
 
-            var BaseUrl = "https://lingolex.com/verbs/az_verbs.php?letra=A";
-            var BaseLetterUrl = "https://lingolex.com/verbs/az_verbs.php?letra=";
+            const string LetterBaseURL = "https://lingolex.com/verbs/az_verbs.php?letra=";
+            const string LetterPageURL = "https://lingolex.com/verbs/az_verbs.php?page={0}&letra={1}";
+            const string VerbConjugationURL = "https://wordreference.com/conj/esverbs.aspx?v={0}";
             var web = new HtmlWeb();
-            var doc = web.Load(BaseUrl);
+            var doc = web.Load(String.Concat(LetterBaseURL, "A"));
 
             // получаем список ненумерованных списков (ul)
             var a = doc.DocumentNode.SelectNodes("//ul");
@@ -47,7 +48,7 @@ namespace ParseVerbs
             {
                 Console.Clear();
                 Console.WriteLine(letter);
-                StringBuilder sb = new StringBuilder(BaseLetterUrl);
+                StringBuilder sb = new StringBuilder(LetterBaseURL);
                 sb.Append(letter);
                 var LetterWeb = new HtmlWeb();
                 var LetterDoc = LetterWeb.Load(sb.ToString());
@@ -69,7 +70,7 @@ namespace ParseVerbs
                     //Console.WriteLine();
                     foreach (var page in PagesList)
                     {
-                        string OnePageURL = string.Format("https://lingolex.com/verbs/az_verbs.php?page={1}&letra={0}", letter, page);
+                        string OnePageURL = string.Format(LetterPageURL, page, letter);
                         Console.WriteLine(OnePageURL);
                         var OnePageWeb = new HtmlWeb();
                         var OnePageDoc = OnePageWeb.Load(OnePageURL);
@@ -77,8 +78,13 @@ namespace ParseVerbs
                         var verbs = divs[5].SelectNodes("div").ToList();
                         for (int i = 3; i < verbs.Count-2; i++)
                         {
-                            Console.WriteLine(String.Format("{0} -> {1}", verbs[i].SelectNodes("div")[0].InnerText, verbs[i].SelectNodes("div")[1].InnerText));
-                            Verbs.Add(new Verb() { Spanish = verbs[i].SelectNodes("div")[0].InnerText.Trim(), English = verbs[i].SelectNodes("div")[1].InnerText.Trim(), Russian = String.Empty });
+                            var spainVerb = verbs[i].SelectNodes("div")[0].InnerText.Trim();
+                            var englishVerb = verbs[i].SelectNodes("div")[1].InnerText.Trim();
+                            Console.WriteLine(String.Format("{0} -> {1}", spainVerb, englishVerb));
+                            Verbs.Add(new Verb() { Spanish = spainVerb , English = englishVerb , Russian = String.Empty });
+
+                            var VerbConjugationWeb = new HtmlWeb();
+                            var VerbConjugationDoc = OnePageWeb.Load(string.Format(VerbConjugationURL, spainVerb));
                         }
                         Console.WriteLine();
                     }
