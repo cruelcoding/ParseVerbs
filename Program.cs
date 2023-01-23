@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using HtmlAgilityPack;
 
 namespace ParseVerbs
@@ -14,6 +15,9 @@ namespace ParseVerbs
         public String Spanish { get; set; }
         public String English { get; set; }
         public String Russian { get; set; }
+        public Dictionary<String,string>  Present { get; set; }
+
+        public Verb() { Present = new Dictionary<string, string>(); }
     }
 
     internal class Program
@@ -81,10 +85,40 @@ namespace ParseVerbs
                             var spainVerb = verbs[i].SelectNodes("div")[0].InnerText.Trim();
                             var englishVerb = verbs[i].SelectNodes("div")[1].InnerText.Trim();
                             Console.WriteLine(String.Format("{0} -> {1}", spainVerb, englishVerb));
-                            Verbs.Add(new Verb() { Spanish = spainVerb , English = englishVerb , Russian = String.Empty });
+                            var newVerb = new Verb() { Spanish = spainVerb, English = englishVerb, Russian = String.Empty };
 
                             var VerbConjugationWeb = new HtmlWeb();
+                            //spainVerb = "tener";
                             var VerbConjugationDoc = OnePageWeb.Load(string.Format(VerbConjugationURL, spainVerb));
+                            var h4 = VerbConjugationDoc.DocumentNode.SelectNodes("//h4");
+
+                            if (h4 != null)
+                            {
+                                var h4Indicativo = h4.Where(x => x.InnerText.Trim() == "Indicativo").First();
+
+                                if (h4Indicativo != null)
+                                {
+                                    var parentDIVNode = h4Indicativo.ParentNode;
+
+                                    var tables = parentDIVNode.SelectNodes("table");
+                                    var rows = tables[0].SelectNodes("tr");
+                                    for (int j = 1; j < rows.Count; j++)
+                                    {
+                                        try
+                                        {
+                                            Console.WriteLine(rows[j].ChildNodes[0].InnerText + " -> " + rows[j].ChildNodes[1].InnerText);
+                                            newVerb.Present.Add(rows[j].ChildNodes[0].InnerText, rows[j].ChildNodes[1].InnerText);
+                                        }
+                                        catch
+                                        {
+
+                                        }
+                                    }
+                                }
+                            }
+
+                            
+                            Verbs.Add(newVerb);
                         }
                         Console.WriteLine();
                     }
