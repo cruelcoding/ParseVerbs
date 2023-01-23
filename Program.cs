@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -69,9 +70,6 @@ namespace ParseVerbs
                 }
                 if (PagesList.Count > 0)
                 {
-                    //Console.WriteLine();
-                    //Console.WriteLine(string.Join(" ", PagesList));
-                    //Console.WriteLine();
                     foreach (var page in PagesList)
                     {
                         string OnePageURL = string.Format(LetterPageURL, page, letter);
@@ -85,47 +83,57 @@ namespace ParseVerbs
                             var spainVerb = verbs[i].SelectNodes("div")[0].InnerText.Trim();
                             var englishVerb = verbs[i].SelectNodes("div")[1].InnerText.Trim();
                             Console.WriteLine(String.Format("{0} -> {1}", spainVerb, englishVerb));
-                            var newVerb = new Verb() { Spanish = spainVerb, English = englishVerb, Russian = String.Empty };
-
-                            var VerbConjugationWeb = new HtmlWeb();
-                            //spainVerb = "tener";
-                            var VerbConjugationDoc = OnePageWeb.Load(string.Format(VerbConjugationURL, spainVerb));
-                            var h4 = VerbConjugationDoc.DocumentNode.SelectNodes("//h4");
-
-                            if (h4 != null)
-                            {
-                                var h4Indicativo = h4.Where(x => x.InnerText.Trim() == "Indicativo").First();
-
-                                if (h4Indicativo != null)
-                                {
-                                    var parentDIVNode = h4Indicativo.ParentNode;
-
-                                    var tables = parentDIVNode.SelectNodes("table");
-                                    var rows = tables[0].SelectNodes("tr");
-                                    for (int j = 1; j < rows.Count; j++)
-                                    {
-                                        try
-                                        {
-                                            Console.WriteLine(rows[j].ChildNodes[0].InnerText + " -> " + rows[j].ChildNodes[1].InnerText);
-                                            newVerb.Present.Add(rows[j].ChildNodes[0].InnerText, rows[j].ChildNodes[1].InnerText);
-                                        }
-                                        catch
-                                        {
-
-                                        }
-                                    }
-                                }
-                            }
-
-                            
-                            Verbs.Add(newVerb);
+                            Verbs.Add(new Verb() { Spanish = spainVerb, English = englishVerb, Russian = String.Empty });
                         }
                         Console.WriteLine();
                     }
-                    //Console.ReadKey();
                 }
             }
-            var jsonString = JsonSerializer.Serialize(Verbs, new JsonSerializerOptions() {  DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull, WriteIndented = true });
+
+            string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"reflexive.txt");
+            string[] reflexive = File.ReadAllLines(path);
+
+            for (int i = 0; i < reflexive.Count(); i++)
+            {
+                if (i % 2 != 0)
+                {
+                    Verbs.Add(new Verb() { Spanish = reflexive[i - 1], English = reflexive[i], Russian = string.Empty });
+                }
+            }
+
+
+            foreach (Verb verb in Verbs)
+            {
+                var VerbConjugationWeb = new HtmlWeb();
+                var VerbConjugationDoc = VerbConjugationWeb.Load(string.Format(VerbConjugationURL, verb.Spanish));
+                var h4 = VerbConjugationDoc.DocumentNode.SelectNodes("//h4");
+
+                if (h4 != null)
+                {
+                    var h4Indicativo = h4.Where(x => x.InnerText.Trim() == "Indicativo").First();
+
+                    if (h4Indicativo != null)
+                    {
+                        var parentDIVNode = h4Indicativo.ParentNode;
+
+                        var tables = parentDIVNode.SelectNodes("table");
+                        var rows = tables[0].SelectNodes("tr");
+                        for (int j = 1; j < rows.Count; j++)
+                        {
+                            try
+                            {
+                                Console.WriteLine(rows[j].ChildNodes[0].InnerText + " -> " + rows[j].ChildNodes[1].InnerText);
+                                verb.Present.Add(rows[j].ChildNodes[0].InnerText, rows[j].ChildNodes[1].InnerText);
+                            }
+                            catch
+                            {
+
+                            }
+                        }
+                    }
+                }
+            }
+            var jsonString = JsonSerializer.Serialize(Verbs, new JsonSerializerOptions() { DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull, WriteIndented = true });
             File.WriteAllText("SpanishVerbs.json", jsonString);
         }
     }
