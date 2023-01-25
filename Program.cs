@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -11,22 +12,12 @@ using HtmlAgilityPack;
 
 namespace ParseVerbs
 {
-    public class Verb
-    {
-        public String Spanish { get; set; }
-        public String English { get; set; }
-        public String Russian { get; set; }
-        public Dictionary<String,string>  Present { get; set; }
-
-        public Verb() { Present = new Dictionary<string, string>(); }
-    }
-
     internal class Program
     {
         static void Main(string[] args)
         {
             List<char> Chars = new List<char>();
-            List<Verb> Verbs = new List<Verb>();  
+            List<ExpandoObject> Verbs = new List<ExpandoObject>();  
 
             const string LetterBaseURL = "https://lingolex.com/verbs/az_verbs.php?letra=";
             const string LetterPageURL = "https://lingolex.com/verbs/az_verbs.php?page={0}&letra={1}";
@@ -78,16 +69,23 @@ namespace ParseVerbs
                         var OnePageDoc = OnePageWeb.Load(OnePageURL);
                         var divs = OnePageDoc.DocumentNode.SelectNodes("//div");
                         var verbs = divs[5].SelectNodes("div").ToList();
-                        for (int i = 3; i < verbs.Count-2; i++)
+                        for (int i = 3; i < verbs.Count - 2; i++)
                         {
                             var spainVerb = verbs[i].SelectNodes("div")[0].InnerText.Trim();
                             var englishVerb = verbs[i].SelectNodes("div")[1].InnerText.Trim();
                             Console.WriteLine(String.Format("{0} -> {1}", spainVerb, englishVerb));
-                            Verbs.Add(new Verb() { Spanish = spainVerb, English = englishVerb, Russian = String.Empty });
+
+                            dynamic newVerb = new ExpandoObject();
+                            newVerb.Spanish = spainVerb;
+                            newVerb.English = englishVerb;
+                            newVerb.Russsian = string.Empty;
+
+                            Verbs.Add(newVerb);
                         }
                         Console.WriteLine();
                     }
                 }
+                //break;
             }
 
             string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"reflexive.txt");
@@ -97,15 +95,18 @@ namespace ParseVerbs
             {
                 if (i % 2 != 0)
                 {
-                    Verbs.Add(new Verb() { Spanish = reflexive[i - 1], English = reflexive[i], Russian = string.Empty });
+                    dynamic newVerb = new ExpandoObject();
+                    newVerb.Spanish = reflexive[i - 1];
+                    newVerb.English = reflexive[i];
+                    newVerb.Russsian = string.Empty;
+                    Verbs.Add(newVerb);
                 }
             }
 
-
-            foreach (Verb verb in Verbs)
+            foreach (dynamic verb in Verbs)
             {
                 var VerbConjugationWeb = new HtmlWeb();
-                var VerbConjugationDoc = VerbConjugationWeb.Load(string.Format(VerbConjugationURL, verb.Spanish));
+                HtmlDocument VerbConjugationDoc = VerbConjugationWeb.Load(string.Format(VerbConjugationURL, verb.Spanish));
                 var h4 = VerbConjugationDoc.DocumentNode.SelectNodes("//h4");
 
                 if (h4 != null)
@@ -117,17 +118,37 @@ namespace ParseVerbs
                         var parentDIVNode = h4Indicativo.ParentNode;
 
                         var tables = parentDIVNode.SelectNodes("table");
-                        var rows = tables[0].SelectNodes("tr");
-                        for (int j = 1; j < rows.Count; j++)
-                        {
-                            try
-                            {
-                                Console.WriteLine(rows[j].ChildNodes[0].InnerText + " -> " + rows[j].ChildNodes[1].InnerText);
-                                verb.Present.Add(rows[j].ChildNodes[0].InnerText, rows[j].ChildNodes[1].InnerText);
-                            }
-                            catch
-                            {
 
+                        if (tables != null)
+                        {
+                            foreach (var table in tables)
+                            {
+                                var rows = table.SelectNodes("tr");
+                                if (rows != null)
+                                {
+                                    var TimeName = rows[0].ChildNodes[0].InnerText;
+                                    int indexof = TimeName.IndexOf('&');
+                                    if (indexof != -1)
+                                    {
+                                        TimeName = TimeName.Substring(0, indexof);
+                                    }
+                                    (verb as IDictionary<string, object>).Add(TimeName, new Dictionary<string, string>());
+                                    for (int j = 1; j < rows.Count; j++)
+                                    {
+                                        try
+                                        {
+                                            var pronombre = rows[j].ChildNodes[0].InnerText;
+                                            var verbConjugated = rows[j].ChildNodes[1].InnerText;
+                                            Console.WriteLine(pronombre + " -> " + verbConjugated);
+                                            ((verb as IDictionary<string, object>)[TimeName] as IDictionary<string, String>).Add(pronombre, verbConjugated);
+                                        }
+                                        catch
+                                        {
+
+                                        }
+                                    }
+                                }
+                                Console.WriteLine();
                             }
                         }
                     }
