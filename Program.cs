@@ -78,7 +78,7 @@ namespace ParseVerbs
                             dynamic newVerb = new ExpandoObject();
                             newVerb.Spanish = spainVerb;
                             newVerb.English = englishVerb;
-                            newVerb.Russsian = string.Empty;
+                            newVerb.Russian = string.Empty;
 
                             Verbs.Add(newVerb);
                         }
@@ -98,7 +98,7 @@ namespace ParseVerbs
                     dynamic newVerb = new ExpandoObject();
                     newVerb.Spanish = reflexive[i - 1];
                     newVerb.English = reflexive[i];
-                    newVerb.Russsian = string.Empty;
+                    newVerb.Russian = string.Empty;
                     Verbs.Add(newVerb);
                 }
             }
