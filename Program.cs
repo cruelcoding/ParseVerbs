@@ -37,6 +37,7 @@ namespace ParseVerbs
                 Chars.Add(c.InnerText[0]);
             }
             Console.WriteLine(Chars.ToArray());
+            Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
 
             // для каждой буквы алфавита
