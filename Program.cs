@@ -22,8 +22,7 @@ namespace ParseVerbs
             const string LetterBaseURL = "https://lingolex.com/verbs/az_verbs.php?letra=";
             const string LetterPageURL = "https://lingolex.com/verbs/az_verbs.php?page={0}&letra={1}";
             const string VerbConjugationURL = "https://wordreference.com/conj/esverbs.aspx?v={0}";
-            var web = new HtmlWeb();
-            var doc = web.Load(String.Concat(LetterBaseURL, "A"));
+            var doc = new HtmlWeb().Load(String.Concat(LetterBaseURL, "A"));
 
             // получаем список ненумерованных списков (ul)
             var a = doc.DocumentNode.SelectNodes("//ul");
@@ -45,10 +44,7 @@ namespace ParseVerbs
             {
                 Console.Clear();
                 Console.WriteLine(letter);
-                StringBuilder sb = new StringBuilder(LetterBaseURL);
-                sb.Append(letter);
-                var LetterWeb = new HtmlWeb();
-                var LetterDoc = LetterWeb.Load(sb.ToString());
+                var LetterDoc = new HtmlWeb().Load(String.Concat(LetterBaseURL, letter));
                 var lists = LetterDoc.DocumentNode.SelectNodes("//ul");
                 var pages = lists[2].SelectNodes("li").ToList();
                 List<int> PagesList = new List<int>();
@@ -66,8 +62,7 @@ namespace ParseVerbs
                     {
                         string OnePageURL = string.Format(LetterPageURL, page, letter);
                         Console.WriteLine(OnePageURL);
-                        var OnePageWeb = new HtmlWeb();
-                        var OnePageDoc = OnePageWeb.Load(OnePageURL);
+                        var OnePageDoc = new HtmlWeb().Load(OnePageURL);
                         var divs = OnePageDoc.DocumentNode.SelectNodes("//div");
                         var verbs = divs[5].SelectNodes("div").ToList();
                         for (int i = 3; i < verbs.Count - 2; i++)
@@ -106,8 +101,9 @@ namespace ParseVerbs
 
             foreach (dynamic verb in Verbs)
             {
-                var VerbConjugationWeb = new HtmlWeb();
-                HtmlDocument VerbConjugationDoc = VerbConjugationWeb.Load(string.Format(VerbConjugationURL, verb.Spanish));
+                string ConjugationURL = string.Format(VerbConjugationURL, verb.Spanish);
+                Console.WriteLine(ConjugationURL);
+                HtmlDocument VerbConjugationDoc = new HtmlWeb().Load(ConjugationURL);
                 var h4 = VerbConjugationDoc.DocumentNode.SelectNodes("//h4");
 
                 if (h4 != null)
