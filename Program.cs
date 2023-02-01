@@ -72,7 +72,7 @@ namespace ParseVerbs
                             Console.WriteLine(String.Format("{0} -> {1}", spainVerb, englishVerb));
 
                             dynamic newVerb = new ExpandoObject();
-                            newVerb.Spanish = spainVerb;
+                            newVerb.Spanish = spainVerb.Replace("\u0026ntilde;","ñ");
                             newVerb.English = englishVerb;
                             newVerb.Russian = string.Empty;
 
@@ -92,7 +92,7 @@ namespace ParseVerbs
                 if (i % 2 != 0)
                 {
                     dynamic newVerb = new ExpandoObject();
-                    newVerb.Spanish = reflexive[i - 1];
+                    newVerb.Spanish = reflexive[i - 1].Replace("\u0026ntilde;","ñ");
                     newVerb.English = reflexive[i];
                     newVerb.Russian = string.Empty;
                     Verbs.Add(newVerb);
