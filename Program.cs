@@ -41,11 +41,9 @@ namespace ParseVerbs
                     ["Spanish"] = VerbToConjugate,
                     ["English"] = new string[0],
                     ["Russian"] = new string[0],
-                    ["englishWordsForTranslate"] = new int[0],
-                    ["russianWordsForTranslate"] = new int[0],
-                    ["is200"] = false,
                     ["gerundio"] = "",
-                    ["participio"] = ""
+                    ["participio"] = "",
+                    ["themes"] = new string[0]
                 };
 
                 var conjTables = VerbConjugationDoc.DocumentNode.SelectNodes("//table");
