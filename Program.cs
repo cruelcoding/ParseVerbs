@@ -58,9 +58,10 @@ namespace ParseVerbs
                         {
                             try
                             {
-                                WordDictionary["gerundio"] = rows[j].ChildNodes[3].ChildNodes[2].InnerHtml + rows[j].ChildNodes[3].ChildNodes[3].InnerHtml;
+                                WordDictionary["gerundio"] = new string[] { rows[j].ChildNodes[3].ChildNodes[2].InnerHtml + rows[j].ChildNodes[3].ChildNodes[3].InnerHtml };
                                 for (int k = 4; k < rows[j].ChildNodes[3].ChildNodes.Count - 2; k++)
                                     WordDictionary["participio"] = WordDictionary["participio"] + rows[j].ChildNodes[3].ChildNodes[k].InnerHtml;
+                                WordDictionary["participio"] = new string[] { WordDictionary["participio"].ToString() };
                             }
                             catch
                             {
@@ -98,7 +99,7 @@ namespace ParseVerbs
                             MainTimeName = "subjuntivo";
                         } else
                         {
-                            WordDictionary.Add(MainTimeName, new Dictionary<string, Dictionary<string, string>>());
+                            WordDictionary.Add(MainTimeName, new Dictionary<string, Dictionary<string, string[]>>());
                         }
                     }
                     
@@ -133,7 +134,7 @@ namespace ParseVerbs
                                         LocalTimeName = "Pret\u00E9rito pluscuamperfecto";
                                     }
                                     LocalTimeName = LocalTimeName.ToLower();
-                                    (WordDictionary[MainTimeName] as IDictionary<string, Dictionary<string, string>>).Add(LocalTimeName, new Dictionary<string, string>());
+                                    (WordDictionary[MainTimeName] as IDictionary<string, Dictionary<string, string[]>>).Add(LocalTimeName, new Dictionary<string, string[]>());
                                     for (int j = 1; j < rows.Count; j++)
                                     {
                                         try
@@ -197,7 +198,7 @@ namespace ParseVerbs
                                                     if (vosValue != verbConjugated)
                                                     {
                                                         Console.WriteLine(pronombre + " -> " + verbConjugated);
-                                                        (WordDictionary[MainTimeName] as IDictionary<string, Dictionary<string, string>>)[LocalTimeName].Add(pronombre, verbConjugated + " / " + vosValue);
+                                                        (WordDictionary[MainTimeName] as IDictionary<string, Dictionary<string, string[]>>)[LocalTimeName].Add(pronombre, new string[] { verbConjugated + " / " + vosValue });
                                                         continue;
                                                     }
                                                 }
@@ -232,7 +233,7 @@ namespace ParseVerbs
                                                     }
                                                 }
                                                 Console.WriteLine(pronombre + " -> " + verbConjugated);
-                                                (WordDictionary[MainTimeName] as IDictionary<string, Dictionary<string, string>>)[LocalTimeName].Add(pronombre, verbConjugated);
+                                                (WordDictionary[MainTimeName] as IDictionary<string, Dictionary<string, string[]>>)[LocalTimeName].Add(pronombre, new string[] { verbConjugated });
                                             }
                                         }
                                         catch
@@ -240,15 +241,15 @@ namespace ParseVerbs
 
                                         }
                                     }
-                                    if ((WordDictionary[MainTimeName] as IDictionary<string, Dictionary<string, string>>)[LocalTimeName].Keys.Count == 0)
+                                    if ((WordDictionary[MainTimeName] as IDictionary<string, Dictionary<string, string[]>>)[LocalTimeName].Keys.Count == 0)
                                     {
-                                        (WordDictionary[MainTimeName] as IDictionary<string, Dictionary<string, string>>).Remove(LocalTimeName);
+                                        (WordDictionary[MainTimeName] as IDictionary<string, Dictionary<string, string[]>>).Remove(LocalTimeName);
                                     }
                                 }
                                 Console.WriteLine();
                             }
                         }
-                        if ((WordDictionary[MainTimeName] as IDictionary<string, Dictionary<string, string>>).Keys.Count == 0)
+                        if ((WordDictionary[MainTimeName] as IDictionary<string, Dictionary<string, string[]>>).Keys.Count == 0)
                         {
                             WordDictionary.Remove(MainTimeName);
                         }
